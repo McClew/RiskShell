@@ -1,0 +1,52 @@
+title: "Bottom-Up Breach Cost Scoping Analyser"
+description: |
+  Calculates the aggregated Lower Bound and Upper Bound financial exposure of a data breach by dissecting the incident into immediate response costs, business interruption losses, and long-term legal or regulatory liabilities. The outputs of this module can be directly utilised as the inputs for the Hubbard Lognormal Simulation.
+methodology: |
+  Calculates two separate distinct outputs:
+  1. Estimated Lower Bound = IR_MIN + BI_MIN + LT_MIN
+  2. Estimated Upper Bound = IR_MAX + BI_MAX + LT_MAX
+pros:
+  - "Forces analysts to consider specific operational impacts, drastically increasing estimation accuracy."
+  - "Eliminates cognitive bias by breaking a massive, abstract cost into smaller, easily digestible chunks."
+cons:
+  - "Requires input data from multiple internal business units (e.g., Legal, IT, Finance) to establish realistic parameters."
+variables:
+  # --- Immediate Response Costs ---
+  - name: "IR_MIN"
+    default: 5000.0
+    required: true
+    description: "The minimum cost for external incident response retainers, forensic analysts, and specialised legal counsel."
+    source: "Historical incident response firm baseline fees."
+  - name: "IR_MAX"
+    default: 75000.0
+    required: true
+    description: "The worst-case cost for extensive, multi-week forensic investigations and crisis public relations management."
+    source: "Cyber insurance policy sub-limits."
+
+  # --- Business Interruption Costs ---
+  - name: "BI_MIN"
+    default: 2000.0
+    required: true
+    description: "The minimum loss of operational revenue and internal staff overtime costs during a minor patch or restoration window."
+    source: "Internal business continuity cost models."
+  - name: "BI_MAX"
+    default: 250000.0
+    required: true
+    description: "The worst-case financial fallout if critical core business infrastructure is entirely offline for 5 to 7 business days."
+    source: "Corporate daily revenue data tracking."
+
+  # --- Long-Term Liabilities ---
+  - name: "LT_MIN"
+    default: 0.0
+    required: true
+    description: "The minimum expected long-term costs (e.g., assuming zero regulatory fines or data subject litigation lawsuits)."
+    source: "Regulatory historical precedent logs."
+  - name: "LT_MAX"
+    default: 500000.0
+    required: true
+    description: "The maximum exposure for mandatory ICO regulatory penalties (GDPR/DPA 2018), mandatory credit monitoring for victims, and class-action lawsuits."
+    source: "Information Commissioner's Office enforcement trends."
+
+formula: "print('Calculated Lower Bound: £' + str(IR_MIN + BI_MIN + LT_MIN) + ' | Calculated Upper Bound: £' + str(IR_MAX + BI_MAX + LT_MAX))"
+output_title: "Boundary Bounds Matrix:"
+output_prefix: ""

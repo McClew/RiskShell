@@ -1,0 +1,110 @@
+title: "Human Risk System Dynamics & Awareness Decay Simulator"
+description: |
+  Models employee phishing vulnerabilities over a 365-day calendar year using a System Dynamics loop. 
+  Instead of viewing human risk as a static metric, this module simulates corporate 'Security Awareness' 
+  as a dynamic stock that experiences continuous decay (forgetting curve) and periodic inflows 
+  (interactive training spikes), calculating the resulting daily real-world phishing failure probabilities.
+methodology: |
+  The simulation evaluates a 365-day operational year day-by-day:
+    1. A natural cognitive memory decay outflow reduces the total Security Awareness Stock every day.
+    2. At user-defined operational intervals (Cadence Days), an interactive training event pushes a boost inflow into the stock (capped at 100%).
+    3. The daily awareness level is translated into an active Phishing Failure Rate (%) via linear interpolation between the organisation's worst-case baseline and best-case optimal failure rates.
+  The results are sampled chronologically and plotted as an oscillating exposure timeline.
+pros:
+  - "Captures the hidden 'vulnerable windows' created by natural human memory degradation between training cycles."
+  - "Provides data-driven justification for moving from annual compliance training to continuous micro-learning cadences."
+cons:
+  - "Assumes uniform memory decay patterns across the entire employee population regardless of department culture."
+output_title: "Yearly Human Risk Posture Metrics Calculated:"
+output_prefix: ""
+
+variables:
+  - name: "SIMULATION_DAYS"
+    default: 365
+    required: true
+    description: "The total time horizon for the operational model tracking (in days)."
+    source: "Standard corporate calendar year baseline."
+  - name: "STARTING_AWARENESS"
+    default: 65.0
+    required: true
+    description: "The initial security awareness baseline score of the workforce (0.0 to 100.0) at Day 1."
+    source: "Historical baseline credential testing or initial phish testing benchmarks."
+  - name: "DECAY_RATE"
+    default: 0.006
+    required: true
+    description: "The daily fractional rate at which security awareness naturally decays from human memory (e.g., 0.006 = 0.6% daily reduction)."
+    source: "Academic Ebbinghaus Forgetting Curve corporate training research benchmarks."
+  - name: "TRAINING_CADENCE_DAYS"
+    default: 365
+    required: true
+    description: "The frequency of security training interventions or mandatory simulations (e.g., 90 = Quarterly, 365 = Annually)."
+    source: "Internal security awareness program scheduling guidelines."
+  - name: "TRAINING_BOOST"
+    default: 30.0
+    required: true
+    description: "The immediate numerical increase added to the awareness stock following a training engagement."
+    source: "Post-training simulation behavior delta logs."
+  - name: "BASELINE_FAILURE_RATE"
+    default: 35.0
+    required: true
+    description: "The worst-case phishing click-through rate (%) expected if employee awareness drops to 0%."
+    source: "Industry vertical unmitigated threat benchmarking statistics."
+  - name: "OPTIMAL_FAILURE_RATE"
+    default: 3.0
+    required: true
+    description: "The best-case phishing click-through rate (%) expected if employee awareness is sustained at 100%."
+    source: "Top-tier matured control architecture performance reports."
+
+script: |
+  import numpy as np
+
+  days = int(SIMULATION_DAYS)
+  awareness = float(STARTING_AWARENESS)
+  cadence = int(TRAINING_CADENCE_DAYS)
+  boost = float(TRAINING_BOOST)
+  decay_rate = float(DECAY_RATE)
+
+  timeline_days = []
+  failure_rate_history = []
+  all_rates = []
+
+  for day in range(1, days + 1):
+      # 1. System Dynamics Inflow: Check if a scheduled training event triggers today
+      if day % cadence == 0:
+          awareness = min(100.0, awareness + boost)
+      
+      # 2. System Dynamics Outflow: Apply cognitive memory decay for the day
+      decay_outflow = awareness * decay_rate
+      awareness = max(0.0, awareness - decay_outflow)
+      
+      # 3. Calculate Resulting Threat Exposure State (Phishing Failure Rate)
+      # Linearly interpolate between optimal performance (at 100 awareness) and baseline exposure (at 0 awareness)
+      current_failure_rate = BASELINE_FAILURE_RATE - (awareness / 100.0) * (BASELINE_FAILURE_RATE - OPTIMAL_FAILURE_RATE)
+      all_rates.append(current_failure_rate)
+      
+      # Periodically sample data points every 5 days to output a clean, scannable terminal graph
+      if day % 5 == 0 or day == 1:
+          timeline_days.append(day)
+          failure_rate_history.append(round(current_failure_rate, 2))
+
+  # Calculate annualised aggregated macro statistics for the text console summary
+  peak_exposure = max(all_rates)
+  lowest_exposure = min(all_rates)
+  mean_exposure = np.mean(all_rates)
+
+  print(f"Annual Average Employee Phishing Click Rate: {round(mean_exposure, 1)}%")
+  print(f"Maximum Exposure Spike (Worst Window): {round(peak_exposure, 1)}%")
+  print(f"Minimum Controlled Exposure (Post-Training Peak): {round(lowest_exposure, 1)}%")
+
+visualisation:
+  type: "plot"
+  x_variable: "timeline_days"
+  y_variable: "failure_rate_history"
+  title: "Annual Phishing Failure Probability & Exposure Waves"
+  x_label: "Timeline (Days Across Calendar Year)"
+  y_label: "Workforce Click-Through Probability (%)"
+  height: 15
+  colour: "yellow"
+  theme: "clear"
+  grid: true
+  y_ticks: 8

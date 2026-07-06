@@ -1,0 +1,34 @@
+title: "OWASP Risk Rating Methodology"
+description: |
+  A structured risk assessment framework designed by OWASP. It breaks risk down into Likelihood and Impact, each calculated as an average of multiple sub-factors, to determine an overall risk score.
+methodology: |
+  Likelihood is calculated as the average of Threat Agent Factors and Vulnerability Factors. Impact is calculated as the average of Technical Impact and Business Impact. The final risk score is Likelihood multiplied by Impact.
+pros:
+  - "Provides a highly structured approach with detailed guidelines for scoring sub-factors."
+  - "Balances technical severity with business-level consequences, aligning security with business risk."
+cons:
+  - "Requires detailed knowledge of both technical details and business context to score accurately."
+  - "Calculation steps can become tedious without an automated calculation programme."
+variables:
+  - name: "LIKELIHOOD_THREAT_AGENT"
+    default: 5.0
+    required: true
+    description: "Average score (0.0 to 9.0) for threat agent factors, including skill level, motive, opportunity, and size."
+    source: "Threat actor profiles and intelligence analysis."
+  - name: "LIKELIHOOD_VULNERABILITY"
+    default: 5.0
+    required: true
+    description: "Average score (0.0 to 9.0) for vulnerability factors, including ease of discovery, ease of exploit, awareness, and intrusion detection."
+    source: "Vulnerability scanning results and code audit reports."
+  - name: "IMPACT_TECHNICAL"
+    default: 5.0
+    required: true
+    description: "Average score (0.0 to 9.0) for technical impact factors, including loss of confidentiality, integrity, availability, and accountability."
+    source: "Data classification schemas and service level agreements."
+  - name: "IMPACT_BUSINESS"
+    default: 5.0
+    required: true
+    description: "Average score (0.0 to 9.0) for business impact factors, including financial damage, reputational damage, non-compliance, and privacy violations."
+    source: "Business impact analysis and legal counsel reviews."
+formula: "((LIKELIHOOD_THREAT_AGENT + LIKELIHOOD_VULNERABILITY) / 2) * ((IMPACT_TECHNICAL + IMPACT_BUSINESS) / 2)"
+output_title: "OWASP Risk Score:"

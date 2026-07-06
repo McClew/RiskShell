@@ -1,0 +1,192 @@
+title: "Adversary Game Theory Simulator"
+description: |
+  A fully abstracted, non-linear Game Theory simulation that models an active conflict between an adaptive Attacker 
+  and a Defender. This engine contains no hardcoded security definitions. End-users customise the scenario entirely 
+  by naming two competing Attack strategies, two Defensive postures, and configuring a dynamic cross-efficiency matrix.
+methodology: |
+  1. The module maps user-defined labels onto a 2x2 mathematical Mixed Strategy Matrix.
+  2. A dynamic payoff table calculates Attacker Profit and Defender Loss using input Costs, Asset Valuations, 
+     and Cross-Efficiency Coefficients (how effectively Defense X mitigates Attack Y).
+  3. A Monte Carlo loop executes using reinforcement learning, tracking how both players 
+     rationally shift their probabilities over time to find the custom scenario's Nash Equilibrium.
+pros:
+  - "100% customisable; can be used to model any infrastructure layer (Endpoints, Network, Cloud, or Human element)."
+  - "Dynamically binds defensive performance directly to specific adversarial methodologies."
+cons:
+  - "Requires the analyst to estimate cross-efficiency values (e.g., how well EDR stops a Zero-Day vs. a Phish)."
+output_title: "Strategic Equilibrium Optimisation Reached:"
+output_prefix: ""
+
+variables:
+  - name: "SIMULATION_RUNS"
+    default: 10000
+    required: true
+    description: "The total number of strategic rounds to simulate."
+    source: "Engine performance setting."
+  - name: "LEARNING_RATE"
+    default: 0.01
+    required: true
+    description: "The adjustment step size per round as players optimise strategy profiles."
+    source: "Algorithmic tuning variable."
+  - name: "TOTAL_ASSET_VALUE"
+    default: 500000.0
+    required: true
+    description: "The fiscal valuation of the asset or infrastructure pool under conflict."
+    source: "Business Impact Analysis (BIA) records."
+
+  # --- CUSTOM LABELS ---
+  - name: "ATTACK_A_LABEL"
+    default: "Phishing Campaign"
+    required: true
+    description: "Label for Attacker Strategy A (typically low-cost / high volume)."
+    source: "User interface configuration parameter."
+  - name: "ATTACK_B_LABEL"
+    default: "Zero-Day Exploitation"
+    required: true
+    description: "Label for Attacker Strategy B (typically high-cost / targeted)."
+    source: "User interface configuration parameter."
+  - name: "DEFENSE_A_LABEL"
+    default: "EDR Deployment"
+    required: true
+    description: "Label for Defensive Control A."
+    source: "User interface configuration parameter."
+  - name: "DEFENSE_B_LABEL"
+    default: "Network Segmentation"
+    required: true
+    description: "Label for Defensive Control B."
+    source: "User interface configuration parameter."
+
+  # --- ADVERSARIAL & DEFENSIVE COSTS ---
+  - name: "COST_ATTACK_A"
+    default: 2000.0
+    required: true
+    description: "Financial cost/effort for the attacker to execute Strategy A."
+    source: "Dark web threat intelligence cost indexes."
+  - name: "COST_ATTACK_B"
+    default: 50000.0
+    required: true
+    description: "Financial cost/effort for the attacker to execute Strategy B."
+    source: "Exploit broker market tracking entries."
+  - name: "COST_DEFENSE_A"
+    default: 12000.0
+    required: true
+    description: "Operational/licensing cost to deploy and run Control A."
+    source: "Security software tool licensing budget."
+  - name: "COST_DEFENSE_B"
+    default: 40000.0
+    required: true
+    description: "Operational/licensing cost to deploy and run Control B."
+    source: "Network infrastructure engineering budget."
+
+  # --- CROSS-EFFICIENCY CONNECTIONS (0.0 to 1.0) ---
+  - name: "EFFICIENCY_A_AGAINST_A"
+    default: 0.90
+    required: true
+    description: "How effective is Control A against Attack A? (e.g., EDR vs Malware Phish = 90% effective)."
+    source: "Internal control audit logs and red team exercises."
+  - name: "EFFICIENCY_A_AGAINST_B"
+    default: 0.15
+    required: true
+    description: "How effective is Control A against Attack B? (e.g., EDR vs Network Perimeter Zero-Day = 15% effective)."
+    source: "Vendor benchmark documents and vulnerability mapping."
+  - name: "EFFICIENCY_B_AGAINST_A"
+    default: 0.40
+    required: true
+    description: "How effective is Control B against Attack A? (e.g., Segmentation vs Phish = 40% lateral movement containment)."
+    source: "Historical incident response post-mortem reviews."
+  - name: "EFFICIENCY_B_AGAINST_B"
+    default: 0.85
+    required: true
+    description: "How effective is Control B against Attack B? (e.g., Segmentation vs Perimeter Zero-Day = 85% containment)."
+    source: "Network penetration testing reports."
+
+  # --- INITIAL POSTURE CONFIGURATION ---
+  - name: "STARTING_DEFENSE_A_PROBABILITY"
+    default: 0.50
+    required: true
+    description: "The Defender's initial reliance or current deployment coverage of Control A (0.0 to 1.0)."
+    source: "Identity governance / asset deployment coverage registry."
+  - name: "STARTING_ATTACK_A_PROBABILITY"
+    default: 0.50
+    required: true
+    description: "The Attacker's initial operational preference for Strategy A (0.0 to 1.0)."
+    source: "Threat actor grouping attribution feeds."
+
+script: |
+  import numpy as np
+
+  # Compute dynamic, customised payoffs based on cross-efficiency modifiers
+  # Formats: [Attacker Profit, Defender Loss]
+  
+  # 1. Attack A vs Defense A
+  dmg_0_0 = TOTAL_ASSET_VALUE * (1.0 - EFFICIENCY_A_AGAINST_A)
+  payoff_0_0 = [dmg_0_0 - COST_ATTACK_A, -(dmg_0_0 + COST_DEFENSE_A)]
+  
+  # 2. Attack A vs Defense B
+  dmg_0_1 = TOTAL_ASSET_VALUE * (1.0 - EFFICIENCY_B_AGAINST_A)
+  payoff_0_1 = [dmg_0_1 - COST_ATTACK_A, -(dmg_0_1 + COST_DEFENSE_B)]
+  
+  # 3. Attack B vs Defense A
+  dmg_1_0 = TOTAL_ASSET_VALUE * (1.0 - EFFICIENCY_A_AGAINST_B)
+  payoff_1_0 = [dmg_1_0 - COST_ATTACK_B, -(dmg_1_0 + COST_DEFENSE_A)]
+  
+  # 4. Attack B vs Defense B
+  dmg_1_1 = TOTAL_ASSET_VALUE * (1.0 - EFFICIENCY_B_AGAINST_B)
+  payoff_1_1 = [dmg_1_1 - COST_ATTACK_B, -(dmg_1_1 + COST_DEFENSE_B)]
+
+  payoffs = {
+      (0, 0): payoff_0_0, (0, 1): payoff_0_1,
+      (1, 0): payoff_1_0, (1, 1): payoff_1_1
+  }
+
+  # Initialise strategies dynamically using variables
+  p_attack_a = STARTING_ATTACK_A_PROBABILITY
+  p_defense_a = STARTING_DEFENSE_A_PROBABILITY
+  
+  simulated_steps = []
+  defense_a_history = []
+  scaler = float(TOTAL_ASSET_VALUE)
+
+  for step in range(int(SIMULATION_RUNS)):
+      # Probabilistic choices for this round
+      act_atk = 0 if np.random.rand() < p_attack_a else 1
+      act_def = 0 if np.random.rand() < p_defense_a else 1
+      
+      atk_profit, def_loss = payoffs[(act_atk, act_def)]
+      
+      # Adapt strategies via reinforcement math
+      if act_atk == 0:
+          p_attack_a += LEARNING_RATE * (atk_profit / scaler)
+      else:
+          p_attack_a -= LEARNING_RATE * (atk_profit / scaler)
+          
+      if act_def == 0:
+          p_defense_a += LEARNING_RATE * (def_loss / scaler)
+      else:
+          p_defense_a -= LEARNING_RATE * (def_loss / scaler)
+          
+      # Ensure mathematical boundaries remain strict
+      p_attack_a = max(0.001, min(0.999, p_attack_a))
+      p_defense_a = max(0.001, min(0.999, p_defense_a))
+      
+      if step % 200 == 0:
+          simulated_steps.append(step)
+          defense_a_history.append(round(p_defense_a * 100, 2))
+
+  print(f"Strategic Balance Solved for Environment Scale (£{int(TOTAL_ASSET_VALUE):,}).")
+  print(f"Adversary Equilibrium Profile: {ATTACK_A_LABEL} ({round(p_attack_a*100,1)}%) | {ATTACK_B_LABEL} ({round((1-p_attack_a)*100,1)}%)")
+  print(f"Recommended Posture Balance: Focus resource on {DEFENSE_A_LABEL} at {round(p_defense_a*100,1)}% vs {DEFENSE_B_LABEL} at {round((1-p_defense_a)*100,1)}%")
+
+visualisation:
+  type: "plot"
+  x_variable: "simulated_steps"
+  y_variable: "defense_a_history"
+  title: "Defensive Control Equilibrium Curve"
+  x_label: "Simulation Rounds"
+  y_label: "Control A Strategic Priority Allocation (%)"
+  height: 15
+  colour: "cyan"
+  theme: "clear"
+  grid: true
+  x_ticks: 4
+  y_ticks: 8

@@ -1,0 +1,69 @@
+title: "Qualitative Asset Valuation (AV)"
+description: |
+  Translates subjective, qualitative ratings (1 to 5) across key operational categories into a defensible, mid-point quantitative Asset Value (AV). This bridges the gap between rapid qualitative risk assessments and quantitative ALE calculations.
+  
+  HOW TO UPDATE THIS FILE IN THE FUTURE:
+  The base multipliers below serve as financial anchors that scale qualitative scores into real-world monetary proxies. They are calibrated for standard UK mid-market organisations using historical cyber insurance claims data. If your organisation has a significantly larger or smaller revenue footprint, adjust the '*_BASE_MULTIPLIER' variables below to scale the output to your specific corporate profile.
+methodology: |
+  Replacement Cost Proxy = REPLACEMENT_TIER * REPLACEMENT_BASE_MULTIPLIER
+  Recovery Labor Proxy = RECOVERY_TIER * RECOVERY_BASE_MULTIPLIER
+  Downtime Loss Proxy = DOWNTIME_TIER * RECOVERY_HOURS * DOWNTIME_BASE_MULTIPLIER
+  Legal/Regulatory Proxy = LIABILITY_TIER * LIABILITY_BASE_MULTIPLIER
+  
+  Asset Value (AV) = Replacement Cost Proxy + Recovery Labor Proxy + Downtime Loss Proxy + Legal/Regulatory Proxy
+pros:
+  - "Allows rapid, high-level scoping assessments without forcing analysts to hunt down exact accounting ledgers."
+  - "Output can be natively consumed by quantitative downstream engines like ALE."
+cons:
+  - "Requires baseline multiplier constants to be calibrated periodically to ensure alignment with organisational scale."
+variables:
+  - name: "REPLACEMENT_TIER"
+    default: 2
+    required: true
+    description: "The estimated replacement tier for hardware/software (1 = Negligible, 3 = Medium, 5 = Critical)."
+    source: "Subjective infrastructure evaluation."
+  - name: "RECOVERY_TIER"
+    default: 2
+    required: true
+    description: "The complexity and labor intensity of data/system restoration (1 = Simple, 5 = Extremely Complex)."
+    source: "Disaster recovery complexity estimation."
+  - name: "DOWNTIME_TIER"
+    default: 3
+    required: true
+    description: "The critical nature of the operational service window (1 = Non-essential, 3 = Moderate Revenue, 5 = Core Revenue Engine)."
+    source: "Business Impact Analysis categorisation."
+  - name: "RECOVERY_HOURS"
+    default: 12.0
+    required: true
+    description: "The estimated number of hours required to recover operations."
+    source: "Target Recovery Time Objective (RTO)."
+  - name: "LIABILITY_TIER"
+    default: 4
+    required: true
+    description: "The potential severity of compliance penalties or regulatory focus (1 = Internal only, 4 = Statutory breach, 5 = Global GDPR/ICO crisis)."
+    source: "Data Protection Officer classification."
+    
+  # --- BACKEND CALIBRATION ENGINE MULTIPLIERS ---
+  - name: "REPLACEMENT_BASE_MULTIPLIER"
+    default: 25000.0
+    required: true
+    description: "The scaling currency increment per tier for buying hardware and software licensing. To update: Calculate the difference between a standard workstation rebuild pool vs a core server environment cluster replacement cost."
+    source: "IT Procurement & Vendor Licensing Lists."
+  - name: "RECOVERY_BASE_MULTIPLIER"
+    default: 15000.0
+    required: true
+    description: "The scaling currency increment per tier for engineering labor hours, digital forensics, and clean data re-ingestion. To update: Multiply specialised external incident response consultancy day-rates by expected project weeks."
+    source: "Security Operations / Incident Response Retained Vendor Rates."
+  - name: "DOWNTIME_BASE_MULTIPLIER"
+    default: 2500.0
+    required: true
+    description: "The baseline hourly cost factor applied per downtime tier to scale operational loss. To update: Divide annual gross corporate revenue by total yearly operational hours to find your true macro baseline productivity weight."
+    source: "Corporate Finance Business Impact Analysis (BIA)."
+  - name: "LIABILITY_BASE_MULTIPLIER"
+    default: 75000.0
+    required: true
+    description: "The baseline cost block applied per liability tier to simulate regulatory and litigation escalations. To update: Review median defense costs, mandatory customer notification handling overheads, and historical regional data protection regulatory actions."
+    source: "Actuarial Data & Regional Data Protection Enforcement Trends."
+formula: "(REPLACEMENT_TIER * REPLACEMENT_BASE_MULTIPLIER) + (RECOVERY_TIER * RECOVERY_BASE_MULTIPLIER) + (DOWNTIME_TIER * RECOVERY_HOURS * DOWNTIME_BASE_MULTIPLIER) + (LIABILITY_TIER * LIABILITY_BASE_MULTIPLIER)"
+output_title: "Calculated Quantitative Asset Value Proxy (AV):"
+output_prefix: "£"

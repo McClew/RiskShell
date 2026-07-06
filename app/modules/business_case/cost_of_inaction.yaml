@@ -1,0 +1,30 @@
+title: "Cost of Control Inaction (COCI) Analyser"
+description: |
+  Calculates the compounding financial risk accumulated by delaying the deployment of a security control over a specific time window. It shows stakeholders the fiscal cost of procrastination, comparing the price of the security tool against the risk exposure left unmitigated during the delay.
+methodology: |
+  Unmitigated Risk Exposure = Annualised Loss Expectancy (ALE) * Control Efficacy
+  Daily Exposure Cost = Unmitigated Risk Exposure / 365.25
+  Total Cost of Inaction = Daily Exposure Cost * Delay Days
+pros:
+  - "Excellent for highlighting the potentical cost on inaction to stakeholders."
+cons:
+  - "Assumes threat probabilities are uniformly distributed across the year, which may mask seasonal or spiking attack cycles."
+variables:
+  - name: "ANNUAL_LOSS_EXPECTANCY"
+    default: 240000.0
+    required: true
+    description: "The baseline annual financial risk exposure associated with the unmitigated vulnerability."
+    source: "Upstream loss calculation modules."
+  - name: "CONTROL_EFFICACY"
+    default: 0.80
+    required: true
+    description: "The percentage reduction in risk the proposed security tool would provide if it were deployed today."
+    source: "Vendor benchmarking datasets."
+  - name: "DELAY_DAYS"
+    default: 90.0
+    required: true
+    description: "The number of calendar days a security project deployment is projected to be delayed or stuck in procurement."
+    source: "Project management timelines."
+formula: "((ANNUAL_LOSS_EXPECTANCY * CONTROL_EFFICACY) / 365.25) * DELAY_DAYS"
+output_title: "Total Financial Risk Accumulated Due to Project Delay:"
+output_prefix: "£"

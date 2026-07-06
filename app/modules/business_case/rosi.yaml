@@ -1,0 +1,30 @@
+title: "Return on Security Investment (ROSI) Analyser"
+description: |
+  Calculates the financial return and net value provided by deploying a specific security solution. It balances the original risk exposure against the mitigated risk and the actual annual cost of the software license or managed service.
+methodology: |
+  Modified Risk = Annualised Loss Expectancy (ALE) * (1.0 - Control Efficacy)
+  Financial Risk Saved = ALE - Modified Risk
+  ROSI Score = (Financial Risk Saved - Solution Cost) / Solution Cost
+pros:
+  - "Provides clear financial justification to procurement and the board for purchasing new defensive tools."
+cons:
+  - "Dependent on accurate upstream ALE figures, which can introduce variance if baseline losses are skewed."
+variables:
+  - name: "BASELINE_ALE"
+    default: 150000.0
+    required: true
+    description: "The baseline Annualised Loss Expectancy before any defensive measures are implemented."
+    source: "Upstream ALE risk modules."
+  - name: "CONTROL_EFFICACY"
+    default: 0.85
+    required: true
+    description: "The percentage effectiveness of the proposed security control at stopping the target threat vector."
+    source: "Vendor benchmark results or the CIS Community Defence Model."
+  - name: "SOLUTION_COST"
+    default: 20000.0
+    required: true
+    description: "The total annual operating cost of the tool (including licensing, implementation, and staff maintenance hours)."
+    source: "Vendor quote or corporate IT budget sheets."
+formula: "((BASELINE_ALE * CONTROL_EFFICACY) - SOLUTION_COST) / SOLUTION_COST"
+output_title: "Calculated Return on Security Investment Ratio:"
+output_prefix: ""

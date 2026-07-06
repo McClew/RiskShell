@@ -1,0 +1,25 @@
+title: "Hubbard Lognormal Impact Continuous Simulation"
+description: |
+  Evaluates potential financial impact using the exact single-line lognormal mathematical model from 'How to Measure Anything in Cybersecurity Risk'. Instead of using fixed values, it calculates a random loss trial based on a 90% confidence interval defined by a lower and upper bound.
+methodology: |
+  If a random probability is less than the event likelihood, calculate:
+  Loss = exp(NormalRandom() * ((ln(UB) - ln(LB)) / 3.29) + ((ln(UB) + ln(LB)) / 2))
+pros:
+  - "Accounts for extreme mathematical uncertainty safely without guessing single figures."
+  - "Reflects real-world cyber losses, which are typically long-tailed (low probability, massive loss)."
+cons:
+  - "Requires the core execution engine to run multiple iterations (simulations) to provide a statistically valid mean output."
+variables:
+  - name: LOWER_BOUND
+    default: 10000
+    required: true
+    description: "The minimum estimated financial loss you are 95% certain the asset breach would cost."
+    source: "Expert Elicitation (Calibrated Estimation)"
+  - name: UPPER_BOUND
+    default: 500000
+    required: true
+    description: "The maximum estimated financial loss you are 95% certain the asset breach would cost."
+    source: "Expert Elicitation (Calibrated Estimation)"
+formula: "exp(((log(UPPER_BOUND) + log(LOWER_BOUND)) / 2) + (((log(UPPER_BOUND) - log(LOWER_BOUND)) / 3.29)**2 / 2))"
+output_title: "Breach Expected Cost:"
+output_prefix: "£"

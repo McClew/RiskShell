@@ -1,0 +1,35 @@
+title: "SOC Analyst Queue Capacity Utilisation Model"
+description: |
+  Evaluates team capacity constraints using operational queue theory. It flags when incoming alert volume risks overloading analysts, leading to delayed triage and dropped alerts.
+methodology: |
+  Total Capacity Available Minutes = Analyst Count * Shift Hours * 60
+  Total Workload Required Minutes = Total Alerts Received * Average Minutes Per Triage
+  Utilisation Ratio = Total Workload Required Minutes / Total Capacity Available Minutes
+pros:
+  - "Provides mathematically irrefutable evidence proving when a SOC team is structurally understaffed."
+cons:
+  - "Assumes all incoming alerts take an identical, uniform average length of time to manually triage."
+variables:
+  - name: "ANALYST_COUNT"
+    default: 3.0
+    required: true
+    description: "The number of concurrent Tier-1 triage analysts working the queue simultaneously during a shift."
+    source: "HR shift rotas."
+  - name: "SHIFT_HOURS"
+    default: 8.0
+    required: true
+    description: "The length of the operational shift window in hours."
+    source: "Standard operating procedures."
+  - name: "TOTAL_ALERTS"
+    default: 90.0
+    required: true
+    description: "The volume of new incoming alerts landing in the queue during that single shift window."
+    source: "SIEM analyst console metrics."
+  - name: "AVG_TRIAGE_MINUTES"
+    default: 12.0
+    required: true
+    description: "The average time in minutes an analyst spends inspecting logs to confirm if an alert is malicious."
+    source: "Ticketing platform performance telemetry."
+formula: "(TOTAL_ALERTS * AVG_TRIAGE_MINUTES) / (ANALYST_COUNT * SHIFT_HOURS * 60.0)"
+output_title: "Queue Utilisation Percentage (Warning if > 0.70):"
+output_prefix: ""

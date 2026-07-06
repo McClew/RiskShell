@@ -1,0 +1,29 @@
+title: "SOC Alert Fatigue & Noise Index"
+description: |
+  Calculates the False Positive Rate (FPR) and determines an operational Alert Fatigue Index (AFI). 
+  
+  Healthy:    < 5.0
+  Weary:      5.0 - 15.0
+  Critical:   > 15.0
+
+methodology: |
+  False Positive Rate (FPR) = False Positives / Total Alerts
+  Alert Fatigue Index (AFI) = (Total Alerts * (FPR ** 2)) / 100
+pros:
+  - "Gives SOC managers a single, clear index number proving when detection tools require tuning before analysts burn out."
+cons:
+  - "Does not account for automated SOAR playbook closures that might clear out noise before a human analyst sees it."
+variables:
+  - name: "TOTAL_ALERTS"
+    default: 2000.0
+    required: true
+    description: "The total number of alerts entering the SOC triage queue over the review period."
+    source: "SIEM alert console metrics."
+  - name: "FALSE_POSITIVES"
+    default: 200.0
+    required: true
+    description: "The total number of those alerts that were validated as completely benign system activity."
+    source: "Analyst ticketing log closures."
+formula: "print('False-Positive Rate: ' + str(round((FALSE_POSITIVES / TOTAL_ALERTS) * 100, 2)) + '% | Alert Fatigue Index Score: ' + str(round((TOTAL_ALERTS * ((FALSE_POSITIVES / TOTAL_ALERTS) ** 2)), 1)))"
+output_title: "Queue Metric Diagnostics:"
+output_prefix: ""

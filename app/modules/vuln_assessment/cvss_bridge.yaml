@@ -1,0 +1,29 @@
+title: "CVSS v4.0 Contextual Risk Bridge"
+description: |
+  A modified risk calculation model that bridges the CVSS v4.0 Base Score with contextual modifiers representing the local environment and active threat landscape. It helps security teams customise vulnerability risk assessments.
+methodology: |
+  Adjusts the standard CVSS v4.0 Base Score by multiplying it with a Threat Modifier (reflecting exploit availability) and an Environmental Modifier (reflecting local mitigating controls).
+pros:
+  - "Customises global vulnerability scores to reflect the organisation's actual exposure."
+  - "Integrates threat intelligence feeds directly into vulnerability prioritisation."
+cons:
+  - "Relies on accurate, real-time threat intelligence and environmental asset data."
+  - "Does not replace the full CVSS v4.0 environmental vector, but serves as a pragmatic bridge."
+variables:
+  - name: "BASE_SCORE"
+    default: 7.0
+    required: true
+    description: "The standard CVSS v4.0 Base Score (0.0 to 10.0) reflecting the intrinsic qualities of the vulnerability."
+    source: "National Vulnerability Database (NVD) or vendor advisory."
+  - name: "THREAT_MODIFIER"
+    default: 1.0
+    required: true
+    description: "Threat status modifier reflecting the availability of public exploits. e.g. Active exploit in wild = 1.0, Proof of Concept = 0.9, Unproven = 0.8."
+    source: "Threat intelligence feeds and exploit databases."
+  - name: "ENVIRONMENTAL_MODIFIER"
+    default: 1.0
+    required: true
+    description: "Environmental mitigation modifier reflecting local network exposure and controls. e.g. No mitigation = 1.1, Partial mitigation = 0.9, Fully isolated/mitigated = 0.7."
+    source: "Network topology maps and security control verification systems."
+formula: "BASE_SCORE * THREAT_MODIFIER * ENVIRONMENTAL_MODIFIER"
+output_title: "Contextual CVSS Score:"

@@ -1,0 +1,67 @@
+title: "Monte Carlo Loss Exposure Simulator"
+description: |
+  Runs a stochastic Monte Carlo simulation (10,000 iterations) modeling annual threat event frequencies as a Poisson distribution and financial loss magnitudes as a Lognormal distribution. This simulates thousands of hypothetical years to map out a true, data-driven financial risk curve rather than a single static baseline average.
+methodology: |
+  For each iteration (simulated year):
+    1. Determine the number of incidents using a Poisson distribution based on the ARO.
+    2. For each simulated incident, sample a random financial loss from a Lognormal distribution bounded by min/max assets.
+    3. Aggregate total losses for that year.
+  Sort all simulated years to calculate the 95th percentile (Loss Range at Risk).
+pros:
+  - "Accurately models real-world volatility, capturing the devastating 'long-tail' effect of low-probability, catastrophic breaches."
+cons:
+  - "Requires more computational overhead than basic algebra and basic Python math libraries."
+variables:
+  - name: "ANNUAL_RATE_OF_OCCURRENCE"
+    default: 1.5
+    required: true
+    description: "The average frequency of successful breach events per year (used as the lambda parameter in Poisson distribution)."
+    source: "Threat intelligence or log metrics."
+  - name: "MINIMUM_POSSIBLE_LOSS"
+    default: 10000.0
+    required: true
+    description: "The lowest realistic financial damage an incident could cause."
+    source: "Static asset replacement costs."
+  - name: "MAXIMUM_POSSIBLE_LOSS"
+    default: 500000.0
+    required: true
+    description: "The worst-case financial disaster limit resulting from an event (the maximum loaded asset valuation)."
+    source: "Legal liability and maximum regulatory penalty estimates."
+  - name: "SIMULATION_RUNS"
+    default: 10000
+    required: true
+    description: "The total number of hypothetical corporate lifecycles to simulate."
+    source: "Engine performance setting."
+script: |
+  import numpy as np
+  losses = []
+  for _ in range(int(SIMULATION_RUNS)):
+      num_incidents = np.random.poisson(ANNUAL_RATE_OF_OCCURRENCE)
+      year_loss = 0
+      for _ in range(num_incidents):
+          # Simulating a lognormal curve between min and max boundaries
+          mu = (np.log(MINIMUM_POSSIBLE_LOSS) + np.log(MAXIMUM_POSSIBLE_LOSS)) / 2
+          sigma = (np.log(MAXIMUM_POSSIBLE_LOSS) - np.log(MINIMUM_POSSIBLE_LOSS)) / 4
+          year_loss += np.random.lognormal(mu, sigma)
+      losses.append(year_loss)
+  losses.sort()
+  p95 = np.percentile(losses, 95)
+  print(f'Average Simulated Annual Loss: £{round(np.mean(losses), 2)} | 95th Percentile Extreme Loss Event Capacity (Maximum Risk Exposure): £{round(p95, 2)}')
+output_title: "Simulation Fleet Results:"
+output_prefix: ""
+visualisation:
+  type: "histogram"
+  data_variable: "losses"
+  title: "Monte Carlo Loss Distribution"
+  bins: 50
+  x_ticks: 6
+  y_ticks: 5
+  x_label: "Simulated Annual Loss (£)"
+  y_label: "Frequency (Years)"
+  height: 20
+  colour: "red"
+  theme: "clear"
+  grid: true
+visualisation_bounds:
+  x_min_clamp: 0.0
+  x_max_percentile: 99.0

@@ -1,0 +1,30 @@
+title: "Annualised Loss Expectancy (ALE)"
+description: |
+  A methodology used to calculate the expected monetary loss of an asset due to a specific threat over a one-year period. It assists organisations in prioritising security controls based on financial impact.
+methodology: |
+  The calculation multiplies the Single Loss Expectancy (SLE) by the Annualised Rate of Occurrence (ARO). SLE is derived by multiplying the Asset Value (AV) by the Exposure Factor (EF).
+pros:
+  - "Provides a clear financial figure, aiding in cost-benefit analyses for security controls."
+  - "Standardised approach widely understood by business executives and board members."
+cons:
+  - "Highly dependent on accurate asset valuation and exposure estimations, which can be subjective."
+  - "Underestimates low-probability, high-impact events if the ARO is set too low."
+variables:
+  - name: "AV"
+    default: 100000.0
+    required: true
+    description: "Asset Value representing the total replacement or business value of the asset in GBP."
+    source: "Asset inventory database or business impact analysis."
+  - name: "EF"
+    default: 0.1
+    required: true
+    description: "Exposure Factor representing the percentage of loss the asset suffers from a threat event (expressed as a fraction between 0.0 and 1.0)."
+    source: "Historical incident records or engineering estimates."
+  - name: "ARO"
+    default: 1.0
+    required: true
+    description: "Annualised Rate of Occurrence representing the estimated frequency of the threat occurring within a single year."
+    source: "Threat intelligence reports or past incident logging."
+formula: "AV * EF * ARO"
+output_title: "Annualised Loss Expectancy:"
+output_prefix: "£"

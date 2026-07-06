@@ -1,0 +1,39 @@
+title: "Microsoft DREAD Risk Assessment"
+description: |
+  A qualitative risk assessment model developed by Microsoft to evaluate and categorise cyber threats by rating them across five key categories: Damage, Reproducibility, Exploitability, Affected Users, and Discoverability.
+methodology: |
+  Each of the five categories is assigned a numeric value, typically between 0 and 10. The overall risk rating is the arithmetic mean of these five scores.
+pros:
+  - "Provides a structured, multi-dimensional view of threats beyond simple likelihood and impact."
+  - "Fosters collaborative security discussions during threat modelling exercises."
+cons:
+  - "Subjective scoring ranges can lead to inconsistent results across different analysts."
+  - "Treats all five factors with equal weight, which may not reflect real-world risk dynamics."
+variables:
+  - name: "DAMAGE"
+    default: 5.0
+    required: true
+    description: "Damage potential rating (0.0 to 10.0), assessing the severity of the harm if the vulnerability is exploited."
+    source: "System architecture and data classification policies."
+  - name: "REPRODUCIBILITY"
+    default: 5.0
+    required: true
+    description: "Reproducibility rating (0.0 to 10.0), assessing how easy it is for an attacker to replicate the exploit."
+    source: "Vulnerability analysis and exploit proof-of-concept tests."
+  - name: "EXPLOITABILITY"
+    default: 5.0
+    required: true
+    description: "Exploitability rating (0.0 to 10.0), assessing the effort and expertise required to execute the attack."
+    source: "Industry vulnerability databases and security advisories."
+  - name: "AFFECTED_USERS"
+    default: 5.0
+    required: true
+    description: "Affected Users rating (0.0 to 10.0), representing the proportion of the user base or systems impacted."
+    source: "User directory and network topology diagrams."
+  - name: "DISCOVERABILITY"
+    default: 5.0
+    required: true
+    description: "Discoverability rating (0.0 to 10.0), assessing how easy it is for an attacker to find the vulnerability."
+    source: "Threat actor capabilities and source code availability."
+formula: "(DAMAGE + REPRODUCIBILITY + EXPLOITABILITY + AFFECTED_USERS + DISCOVERABILITY) / 5"
+output_title: "DREAD Risk Score:"

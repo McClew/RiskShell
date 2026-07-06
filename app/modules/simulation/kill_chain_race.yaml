@@ -1,0 +1,75 @@
+title: "Attacker Lateral Movement vs SOC Detection Race Simulator"
+description: |
+  Simulates an operational race condition between an active adversary navigating a standard ransomware attack kill-chain 
+  and an internal SOC/EDR deployment executing threat detection, triage, and machine isolation protocols.
+methodology: |
+  Simulates X (SIMULATION_RUNS) network intrusion attempts. For each run, an attacker's Time-to-Exploit (TTE) 
+  and a defender's Time-to-Contain (TTC) are randomly sampled from an exponential distribution based on operational means.
+  If TTE is less than TTC, the attacker successfully triggers encryption/exfiltration before containment, counting as a defensive failure.
+pros:
+  - "Directly proves the commercial value of dropping detection times (MTTR) by converting minutes into a literal breach-prevention percentage."
+cons:
+  - "Requires granular performance metrics regarding internal patching speed and incident response playbooks."
+output_title: "Race Simulation Vector Analytics:"
+output_prefix: ""
+
+variables:
+  - name: "AVG_ATTACKER_SPEED_MINS"
+    default: 45.0
+    required: true
+    description: "The mean time it takes an active adversary to move from initial access to full domain administrative takeover."
+    source: "CrowdStrike Global Threat Report / Red Team telemetry."
+  - name: "AVG_SOC_CONTAINMENT_MINS"
+    default: 60.0
+    required: true
+    description: "The current mean time to respond and contain an active endpoint alert across the enterprise."
+    source: "Upstream mean_time_to_contain module metrics."
+  - name: "SIMULATION_RUNS"
+    default: 5000
+    required: true
+    description: "The total number of hypothetical intrusion attempts to simulate."
+    source: "Engine performance setting."
+
+script: |
+  import random
+  
+  failures = 0
+  sims = int(SIMULATION_RUNS)
+  
+  # Arrays to feed the visualisation engine
+  attacker_plot_points = []
+  defender_plot_points = []
+  
+  for i in range(sims):
+      # Expovariate models random human activity arrival and execution times realistically
+      attacker_time = random.expovariate(1.0 / AVG_ATTACKER_SPEED_MINS)
+      defender_time = random.expovariate(1.0 / AVG_SOC_CONTAINMENT_MINS)
+      
+      if attacker_time < defender_time:
+          failures += 1
+          
+      # Sample a clean subset (e.g., every 10th run) to keep the terminal scatter plot highly readable
+      if i % 10 == 0:
+          attacker_plot_points.append(round(attacker_time, 1))
+          defender_plot_points.append(round(defender_time, 1))
+          
+  win_rate = ((sims - failures) / sims) * 100
+  print(f'SOC Containment Success Rate: {round(win_rate, 2)}% | Escaped Attackers (Full Breaches): {failures} out of {sims} attempts')
+
+visualisation:
+  type: "scatter"
+  x_variable: "defender_plot_points"
+  y_variable: "attacker_plot_points"
+  title: "Intrusion Race Condition Plane (TTC vs TTE)"
+  x_label: "Defender Time-To-Contain (Minutes)"
+  y_label: "Attacker Time-To-Exploit (Minutes)"
+  height: 16
+  colour: "magenta"
+  theme: "clear"
+  grid: true
+  x_ticks: 4
+  y_ticks: 8
+
+visualisation_bounds:
+  x_min_clamp: 0.0
+  x_max_percentile: 95.0  # Chops off extreme exponential long-tail outliers to keep the visual grid tightly scaled

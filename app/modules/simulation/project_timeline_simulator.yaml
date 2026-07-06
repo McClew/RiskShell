@@ -1,0 +1,153 @@
+title: "Project Risk & Timeline Simulator"
+description: |
+  Runs a stochastic Monte Carlo simulation to predict total project duration across consecutive implementation phases. 
+  By utilising Beta-PERT distributions for each phase based on three-point estimates (Min, Most Likely, Max days), the module models real-world 
+  project volatility and provides a realistic probability curve for project completion.
+methodology: |
+  For each iteration (simulated project lifecycle):
+    1. For each consecutive phase, a random duration is sampled from a Beta-PERT distribution.
+    2. The individual phase durations are summed to calculate the total project duration for that iteration.
+  The final dataset is mapped to an Exceedance Curve to show the probability of delivering the project within specific timeframes.
+pros:
+  - "Provides a mathematically sound alternative to optimistic 'Gantt chart' deadlines by exposing the statistical probability of delays."
+  - "Highlights which specific phase introduces the greatest variance and risk to the overall schedule."
+cons:
+  - "Assumes project phases run sequentially; does not inherently model complex parallel paths without advanced network logic."
+output_title: "Project Timeline Exceedance Projections:"
+output_postfix: " Days"
+
+variables:
+  - name: "SIMULATION_RUNS"
+    default: 10000
+    required: true
+    description: "The total number of hypothetical project lifecycles to simulate."
+    source: "Engine performance setting."
+  
+  - name: "TARGET_DEADLINE"
+    default: 60
+    required: true
+    description: "The target deadline (in days) to achieve project delivery."
+    source: "Management requirement."
+
+  # PHASE 1: Planning & Architecture
+  - name: "P1_MIN"
+    default: 10
+    required: true
+    description: "Phase 1: Minimum possible duration in days (best-case scenario)."
+    source: "Historical baseline for standard architecture sign-offs."
+  - name: "P1_LIKELY"
+    default: 20
+    required: true
+    description: "Phase 1: The most likely duration in days."
+    source: "Project manager estimate."
+  - name: "P1_MAX"
+    default: 30
+    required: true
+    description: "Phase 1: Maximum possible duration in days (worst-case bureaucratic delays)."
+    source: "Worst-case legal/compliance sign-off history."
+
+  # PHASE 2: Engineering & Implementation
+  - name: "P2_MIN"
+    default: 20
+    required: true
+    description: "Phase 2: Minimum engineering duration in days."
+    source: "Core sprint capacity alignment."
+  - name: "P2_LIKELY"
+    default: 30
+    required: true
+    description: "Phase 2: Most likely engineering duration in days."
+    source: "Technical lead estimation."
+  - name: "P2_MAX"
+    default: 50
+    required: true
+    description: "Phase 2: Maximum engineering duration in days (e.g., encountering legacy code blockers)."
+    source: "Historical legacy infrastructure discovery delays."
+
+  # PHASE 3: Testing & Deployment
+  - name: "P3_MIN"
+    default: 5
+    required: true
+    description: "Phase 3: Minimum testing duration in days."
+    source: "Automated test suite baseline."
+  - name: "P3_LIKELY"
+    default: 10
+    required: true
+    description: "Phase 3: Most likely testing duration in days."
+    source: "QA team sprint commitment."
+  - name: "P3_MAX"
+    default: 30
+    required: true
+    description: "Phase 3: Maximum testing duration in days (e.g., critical vulnerability discovery)."
+    source: "Historical major defect remediation timelines."
+
+script: |
+  import numpy as np
+
+  def sample_pert(low, likely, high, size=1):
+      """Helper function to sample from a Beta-PERT distribution"""
+      # Standard PERT transformation to shape parameters alpha and beta
+      range_val = high - low
+      if range_val == 0:
+          return np.full(size, low)
+      alpha = 1 + 4 * (likely - low) / range_val
+      beta = 1 + 4 * (high - likely) / range_val
+      return low + np.random.beta(alpha, beta, size) * range_val
+
+  # Run the simulations
+  total_project_durations = []
+  
+  for _ in range(int(SIMULATION_RUNS)):
+      duration_p1 = sample_pert(P1_MIN, P1_LIKELY, P1_MAX)[0]
+      duration_p2 = sample_pert(P2_MIN, P2_LIKELY, P2_MAX)[0]
+      duration_p3 = sample_pert(P3_MIN, P3_LIKELY, P3_MAX)[0]
+      
+      # Aggregate total days for this simulated loop
+      total_project_durations.append(duration_p1 + duration_p2 + duration_p3)
+
+  total_project_durations.sort()
+  total_sims = float(SIMULATION_RUNS)
+
+  # Calculate clean timeline milestones for the X-axis (from 50th percentile to 95th percentile)
+  p50 = int(np.percentile(total_project_durations, 50))
+  p75 = int(np.percentile(total_project_durations, 75))
+  p90 = int(np.percentile(total_project_durations, 90))
+  p95 = int(np.percentile(total_project_durations, 95))
+  
+  timeline_milestones = [p50, p75, p90, p95]
+  
+  # Calculate exceedance probabilities (the chance the project takes AT LEAST this long)
+  exceedance_probabilities = []
+  for days in timeline_milestones:
+      count_exceeding = 0
+      for x in total_project_durations:
+          if x >= days:
+              count_exceeding += 1
+      percentage = (count_exceeding / total_sims) * 100
+      exceedance_probabilities.append(round(percentage, 1))
+
+  target = float(TARGET_DEADLINE)
+  count_achieved = 0
+  for x in total_project_durations:
+      if x <= target:
+          count_achieved += 1
+  chance_achieved = round((count_achieved / total_sims) * 100, 1)
+
+  print(f"Median Completion Target (50% confidence): {p50} Days")
+  print(f"High-Confidence Completion Target (90% confidence): {p90} Days")
+  print(f"Risk-Adjusted Maximum Target (95% confidence): {p95} Days")
+  print("-" * 50)
+  print(f"Chance of Achieving Deadline ({int(target)} Days): {chance_achieved}%")
+
+visualisation:
+  type: "plot"
+  x_variable: "timeline_milestones"
+  y_variable: "exceedance_probabilities"
+  title: "Project Delivery Schedule Exceedance Curve"
+  x_label: "Total Project Duration (Days)"
+  y_label: "Probability of Exceeding Timeframe (%)"
+  x_ticks: 5
+  y_ticks: 10
+  height: 15
+  colour: "yellow"
+  theme: "clear"
+  grid: true

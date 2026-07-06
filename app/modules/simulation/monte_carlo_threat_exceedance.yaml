@@ -1,0 +1,98 @@
+title: "Stochastic Threat Exceedance Simulator"
+description: |
+  Runs a Monte Carlo simulation across multiple independent threat vectors. 
+  Instead of measuring raw frequency, it aggregates the results into a cumulative Exceedance Curve. 
+  This visualises the probability that the organisation will experience 'at least' or 'more than' a given number of major operational breaches next year.
+methodology: |
+  For each simulated year, independent threat vectors are evaluated via Bernoulli trials to determine if a breach occurs. 
+  The total incidents for each year are aggregated. The script then calculates cumulative probabilities: 
+  P(>= 0), P(>= 1), P(>= 2), P(>= 3), and P(>= 4) to map a standard Risk Exceedance Curve.
+pros:
+  - "Perfect for answering executive questions regarding specific risk thresholds (e.g., 'What is the chance we hit more than 2 breaches?')."
+  - "Translates thousands of volatile data points into a smooth, strategic, posture-based curve."
+cons:
+  - "Does not capture financial severity limits, focusing purely on incident volume probabilities."
+output_title: "Exceedance Curve Coordinates Generated:"
+output_prefix: ""
+
+variables:
+  - name: "SIMULATION_RUNS"
+    default: 10000
+    required: true
+    description: "The total number of hypothetical corporate lifecycles to simulate."
+    source: "Engine performance setting."
+  - name: "PHISHING_PROBABILITY"
+    default: 0.45
+    required: true
+    description: "The baseline annual probability (0.0 to 1.0) of a successful phishing breach."
+    source: "Internal phish testing failure rates."
+  - name: "RANSOMWARE_PROBABILITY"
+    default: 0.15
+    required: true
+    description: "The baseline annual probability (0.0 to 1.0) of a successful ransomware infection."
+    source: "Vulnerability compliance tracking."
+  - name: "THIRD_PARTY_PROBABILITY"
+    default: 0.25
+    required: true
+    description: "The baseline annual probability (0.0 to 1.0) of a critical vendor outage."
+    source: "Vendor SLA history."
+  - name: "INSIDER_PROBABILITY"
+    default: 0.10
+    required: true
+    description: "The baseline annual probability (0.0 to 1.0) of a major data leak."
+    source: "DLP metrics."
+
+script: |
+  import numpy as np
+
+  # Run the core Monte Carlo simulation loops
+  yearly_incident_counts = []
+  for _ in range(int(SIMULATION_RUNS)):
+      incidents_this_year = 0
+      if np.random.rand() < PHISHING_PROBABILITY:
+          incidents_this_year += 1
+      if np.random.rand() < RANSOMWARE_PROBABILITY:
+          incidents_this_year += 1
+      if np.random.rand() < THIRD_PARTY_PROBABILITY:
+          incidents_this_year += 1
+      if np.random.rand() < INSIDER_PROBABILITY:
+          incidents_this_year += 1
+      yearly_incident_counts.append(incidents_this_year)
+
+  total_years = float(SIMULATION_RUNS)
+  
+  # Define our discrete X-axis points (Threshold boundaries)
+  incident_thresholds = [0, 1, 2, 3, 4]
+  
+  # Calculate cumulative exceedance probabilities: P(Total >= Threshold)
+  exceedance_probabilities = []
+  for threshold in incident_thresholds:
+      count_meeting_or_exceeding = 0
+      for x in yearly_incident_counts:
+          if x >= threshold:
+              count_meeting_or_exceeding += 1
+      percentage = (count_meeting_or_exceeding / total_years) * 100
+      exceedance_probabilities.append(round(percentage, 2))
+
+  # Print text summary directly to the terminal console
+  print(f"Probability of >= 1 Incident: {exceedance_probabilities[1]}%")
+  print(f"Probability of >= 2 Incidents: {exceedance_probabilities[2]}%")
+  print(f"Probability of >= 3 Incidents: {exceedance_probabilities[3]}%")
+
+visualisation:
+  type: "plot"
+  x_variable: "incident_thresholds"
+  y_variable: "exceedance_probabilities"
+  title: "Incident Exceedance Curve (Probability of Meeting or Exceeding Threshold)"
+  x_label: "Number of Incidents (X or More)"
+  y_label: "Probability of Occurrence (%)"
+  height: 15
+  colour: "cyan"
+  theme: "clear"
+  grid: true
+  x_ticks: 4
+  y_ticks: 8
+
+visualisation_bounds:
+  x_min_clamp: 0.0
+  x_max_clamp: 4.0

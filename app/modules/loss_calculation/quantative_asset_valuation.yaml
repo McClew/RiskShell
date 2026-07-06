@@ -1,0 +1,40 @@
+title: "Quantitative Asset Valuation (AV)"
+description: |
+  Calculates a fully loaded Asset Value (AV) by aggregating replacement expenses, technical data recovery labor, calculated operational downtime losses, and downstream legal or regulatory liabilities. The resulting value provides a defensible 'AV' parameter for Quantitative ALE modules.
+methodology: |
+  Downtime Loss = HOURLY_REVENUE_LOSS * RECOVERY_TIME_HOURS
+  Asset Value (AV) = REPLACEMENT_COST + RECOVERY_COST + Downtime Loss + LIABILITY_AND_FINES
+pros:
+  - "Provides an explicit, operational model for downtime by coupling recovery windows directly to revenue impact."
+  - "Maintains deep accounting defensibility by parsing tech assets by their operational utility rather than physical hardware value."
+cons:
+  - "Relies on realistic estimations for regulatory liabilities, which can fluctuate depending on compliance posture."
+variables:
+  - name: "REPLACEMENT_COST"
+    default: 5000.0
+    required: true
+    description: "The direct market cost to repurchase, provision, and re-license the physical hardware or cloud compute instances."
+    source: "Procurement records and active vendor pricing sheets."
+  - name: "RECOVERY_COST"
+    default: 8500.0
+    required: true
+    description: "The technical expense of restoring data and systems, including engineering overtime hours and external incident response support."
+    source: "IT Disaster Recovery staff allocation models."
+  - name: "HOURLY_REVENUE_LOSS"
+    default: 1250.0
+    required: true
+    description: "The financial revenue or corporate productivity yield lost per hour that the asset is completely unavailable."
+    source: "Corporate Finance Business Impact Analysis (BIA)."
+  - name: "RECOVERY_TIME_HOURS"
+    default: 24.0
+    required: true
+    description: "The expected duration in hours required to completely restore the system to an active production status (RTO)."
+    source: "Disaster Recovery backup restoration logs."
+  - name: "LIABILITY_AND_FINES"
+    default: 50000.0
+    required: true
+    description: "Potential regulatory notification costs, litigation defense reserves, or compliance penalties (e.g., ICO/UK GDPR impact)."
+    source: "Legal counsel and compliance threat matrices."
+formula: "REPLACEMENT_COST + RECOVERY_COST + (HOURLY_REVENUE_LOSS * RECOVERY_TIME_HOURS) + LIABILITY_AND_FINES"
+output_title: "Total Loaded Asset Value (AV):"
+output_prefix: "£"

@@ -1,0 +1,29 @@
+title: "Managed Security Operations Centre (SOC)"
+description: |
+  Calculates the universal value layer added by deploying security experts to actively analyse alert noise, identifying anomalies that slip past automated controls.
+methodology: |
+  Risk Reduction = Threat Weight * Service Efficacy
+pros:
+  - "Simplicity & Speed: It is incredibly easy to understand, communicate, and implement."
+  - "Intuitive Logic: It aligns with basic risk intuition - if a threat is massive (high weight) and your tool is great at stopping it (high efficacy), your risk reduction is going to be significant."
+  - "Flexibility: It can be used for both high-level board discussions (using broad effectiveness percentages) and technical deep dives (using specific attack failure rates from your own environment)."
+  - "Standardised Comparison: It provides a simple method for evaluating and comparing different security controls, allowing for simple value-driven comparisons."
+cons:
+  - "Ignores Impact of Control Failure: The value of the protected asset and the impact of control failure is not considered."
+  - "Ignores Probability of Impact: It does not take into account the likelihood of a successful attack, only the effectiveness of the control."
+  - "Ignores Existing Controls: It does not take into account existing controls that may already be in place."
+  - "Subjectivity: Threat Weight is a subjective measure of the likelihood of a threat occurring."
+  - "Subjectivity: Service Efficacy is a subjective measure of the effectiveness of a security control."
+variables:
+  - name: "THREAT_WEIGHT"
+    default: 0.53
+    required: true
+    description: "The baseline frequency weight of the targeted Malware & System Intrusion vector."
+    source: "Verizon DBIR 2025 - Attack Vector: Malware & System Intrusion"
+  - name: "SERVICE_EFFICACY"
+    default: 0.15
+    required: true
+    description: "The unique analytic capture capability of security experts hunting past baseline software rules."
+    source: "Estimated detection of residual environmental risk"
+formula: "print('Risk Reduction:', round((THREAT_WEIGHT * SERVICE_EFFICACY) * 100, 2), '%, Residual Risk:', round((THREAT_WEIGHT - (THREAT_WEIGHT * SERVICE_EFFICACY)) * 100, 2), '%')"
+output_title: "Results:"

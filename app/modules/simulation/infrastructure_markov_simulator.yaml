@@ -1,0 +1,116 @@
+title: "Infrastructure Security State Markov Simulator"
+description: |
+  Runs a Markov Chain simulation across 10,000 corporate lifecycles. Each iteration simulates 
+  a full 365-day calendar year, day-by-day. The system transitions between four distinct operational 
+  states (Secure, Vulnerable, Active Breach, Outage) based on historical or control-driven transition 
+  probabilities. This measures the expected steady-state resilience of the enterprise.
+methodology: |
+  Every simulated day, a random float determines if the environment changes its state based on a 
+  defined Transition Probability Matrix. For example:
+    - Secure to Vulnerable: Driven by external threat landscaping (vulnerability disclosure rates).
+    - Vulnerable to Secure: Driven by internal Patch Management velocity.
+    - Vulnerable to Breach: Driven by Threat Actor activity exploiting unpatched flaws.
+    - Breach to Outage: Driven by Incident Response detection and isolation speed.
+  The total days spent in each state are aggregated across all runs and visualised using a bar chart.
+pros:
+  - "Models operational velocity, tracking how control efficiency (like patching speed) directly impacts risk exposure duration."
+  - "Provides clear metrics on what percentage of the year the business sits in an unsafe operating posture."
+cons:
+  - "Assumes the 'Markov Property' (the probability of moving to the next state depends solely on the current state, not historical sequence)."
+output_title: "Steady-State Posture Projections (Average Days per Year):"
+output_prefix: ""
+
+variables:
+  - name: "SIMULATION_RUNS"
+    default: 1000
+    required: true
+    description: "The total number of full 365-day years to simulate."
+    source: "Engine performance setting."
+  
+  # TRANSITION PROBABILITIES (Daily Churn Rates)
+  - name: "SECURE_TO_VULNERABLE"
+    default: 0.05
+    required: true
+    description: "Daily probability that a new vulnerability or zero-day is introduced into the environment."
+    source: "Threat intelligence and patch cycle history."
+  - name: "VULNERABLE_TO_SECURE"
+    default: 0.10
+    required: true
+    description: "Daily probability that the patching team successfully remediates discovered vulnerabilities (10% means ~10 days average patch cycle)."
+    source: "Vulnerability management SLA metrics."
+  - name: "VULNERABLE_TO_BREACH"
+    default: 0.01
+    required: true
+    description: "Daily probability that an attacker discovers and successfully exploits an active vulnerability in the environment."
+    source: "External attack surface monitoring data."
+  - name: "BREACH_TO_OUTAGE"
+    default: 0.20
+    required: true
+    description: "Daily probability that an active breach triggers a full operational outage or containment isolation event."
+    source: "Incident Response containment timelines."
+  - name: "OUTAGE_TO_SECURE"
+    default: 0.25
+    required: true
+    description: "Daily probability that the disaster recovery team fully restores systems back to a healthy state (25% means a ~4 day average outage)."
+    source: "Disaster Recovery testing and RTO logs."
+
+script: |
+  import numpy as np
+
+  # State Mapping
+  # 0: Secure, 1: Vulnerable, 2: Active Breach, 3: Outage
+  state_names = ["Secure Posture", "Vulnerable Window", "Active Breach", "System Outage"]
+  
+  # Track total days spent in each state across all simulations
+  global_state_counters = np.zeros(4)
+  
+  sim_years = int(SIMULATION_RUNS)
+  days_in_year = 365
+
+  for _ in range(sim_years):
+      current_state = 0 # Every simulated year starts in a clean 'Secure' state
+      
+      for day in range(days_in_year):
+          global_state_counters[current_state] += 1
+          rand = np.random.rand()
+          
+          if current_state == 0: # SECURE
+              if rand < SECURE_TO_VULNERABLE:
+                  current_state = 1 # Drops into Vulnerable state
+                  
+          elif current_state == 1: # VULNERABLE
+              # Attacker might breach, or team might patch first
+              if rand < VULNERABLE_TO_BREACH:
+                  current_state = 2
+              elif rand < (VULNERABLE_TO_BREACH + VULNERABLE_TO_SECURE):
+                  current_state = 0
+                  
+          elif current_state == 2: # ACTIVE BREACH
+              if rand < BREACH_TO_OUTAGE:
+                  current_state = 3 # Escalates to Outage/Containment
+                  
+          elif current_state == 3: # SYSTEM OUTAGE
+              if rand < OUTAGE_TO_SECURE:
+                  current_state = 0 # Fully recovered back to Secure
+                  
+  # Calculate the average number of days per year spent in each state
+  avg_days_per_state = list(global_state_counters / sim_years)
+  
+  print(f"Average Days Secure per Year: {round(avg_days_per_state[0], 1)} days")
+  print(f"Average Days Vulnerable/Exposed per Year: {round(avg_days_per_state[1], 1)} days")
+  print(f"Average Days Actively Breached per Year: {round(avg_days_per_state[2], 1)} days")
+  print(f"Average Days in Operational Outage per Year: {round(avg_days_per_state[3], 1)} days")
+
+visualisation:
+  type: "bar"
+  x_variable: "state_names"
+  y_variable: "avg_days_per_state"
+  title: "Annual Operational State Allocation"
+  x_label: "Infrastructure States"
+  y_label: "Expected Days Per Year"
+  x_ticks: 4
+  y_ticks: 8
+  height: 15
+  colour: "green"
+  theme: "clear"
+  grid: true

@@ -1,0 +1,28 @@
+title: "Time-to-Compromise (TTC) Resilience Estimator"
+description: |
+  Calculates the theoretical hours or days required for a targeted threat actor to breach an infrastructure perimeter by evaluating the collective friction of overlapping defensive controls against the attacker's skill level.
+methodology: |
+  TTC = (Initial Access Barrier Hours + Lateral Movement Obstacle Hours) * Attacker Delay Multiplier
+pros:
+  - "Shifts focus from binary metrics (secure vs insecure) to an operational resilience timeline (how long can we hold them off)."
+cons:
+  - "Attacker motivations, tools, and discovery of zero-day exploits can artificially crash timelines unpredictably."
+variables:
+  - name: "PERIMETER_BARRIER"
+    default: 24.0
+    required: true
+    description: "Estimated hours a standard attacker requires to compromise external boundaries (e.g. factoring in patch cycles and firewalls)."
+    source: "Red team testing exercises and historic attack patterns."
+  - name: "INTERNAL_FRICTION"
+    default: 48.0
+    required: true
+    description: "Estimated hours required to move laterally across internal networks (increased by network segmentation and local EDR)."
+    source: "Internal architecture review and tabletop simulations."
+  - name: "ATTACKER_SKILL_MULTIPLIER"
+    default: 1.0
+    required: true
+    description: "A scale adjustment based on threat actor profiles: Script Kiddies (2.0 - slowed down easily), Organised Crime (1.0), State-Sponsored Advanced Persistent Threats (0.2 - moves fast)."
+    source: "Threat Intelligence profiling data."
+formula: "(PERIMETER_BARRIER + INTERNAL_FRICTION) * ATTACKER_SKILL_MULTIPLIER"
+output_title: "Estimated Attacker Breakthrough Timeline:"
+output_postfix: " Hours"
