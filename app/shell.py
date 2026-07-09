@@ -553,9 +553,9 @@ class RiskShell(cmd.Cmd):
                         plt.ylim(min(y_ticks), max(y_ticks))
                         
             if 'x_label' in vis_config:
-                plt.x_label(vis_config['x_label'])
+                plt.xlabel(vis_config['x_label'])
             if 'y_label' in vis_config:
-                plt.y_label(vis_config['y_label'])
+                plt.ylabel(vis_config['y_label'])
             if 'theme' in vis_config:
                 plt.theme(vis_config['theme'])
             if 'grid' in vis_config:
