@@ -1,6 +1,10 @@
 title: "Monte Carlo Loss Exposure Simulator"
 description: |
-  Runs a stochastic Monte Carlo simulation (10,000 iterations) modeling annual threat event frequencies as a Poisson distribution and financial loss magnitudes as a Lognormal distribution. This simulates thousands of hypothetical years to map out a true, data-driven financial risk curve rather than a single static baseline average.
+  Runs a stochastic Monte Carlo simulation modeling annual threat event frequencies as a Poisson distribution and financial loss magnitudes as a Lognormal distribution. This simulates thousands of hypothetical years to map out a true, data-driven financial risk curve rather than a single static baseline average.
+
+  The produced graph visualises the probability of different financial outcomes. The horizontal axis indicates the potential monetary loss, whilst the vertical axis displays the frequency of that loss occurring across thousands of simulated scenarios.
+  
+  The bulk of the plotted area highlights the most common, expected losses, whereas the 'long tail' extending to the right represents rare, extreme financial events. By locating the average loss and key percentiles (such as the 95th percentile) along the horizontal axis, you can quickly gauge both your typical expected impact and your worst-case risk exposure.
 methodology: |
   For each iteration (simulated year):
     1. Determine the number of incidents using a Poisson distribution based on the ARO.
@@ -56,6 +60,8 @@ visualisation:
   bins: 50
   x_ticks: 6
   y_ticks: 5
+  x_label: "Simulated Annual Loss (£)"
+  y_label: "Frequency (Years)"
   height: 20
   colour: "red"
   theme: "clear"
