@@ -56,8 +56,6 @@ visualisation:
   bins: 50
   x_ticks: 6
   y_ticks: 5
-  x_label: "Simulated Annual Loss (£)"
-  y_label: "Frequency (Years)"
   height: 20
   colour: "red"
   theme: "clear"
