@@ -1,0 +1,129 @@
+title: "Aggregate ALE Model"
+description: |
+  Calculates the total Annualised Loss Expectancy (ALE) across a comprehensive portfolio of modern cyber threats, visualising the aggregated financial risk landscape for an organisation based on baseline impact and likelihood data.
+methodology: |
+  For each threat vector:
+    1. Multiply the Asset Value by the Exposure Factor (EF) to determine Single Loss Expectancy (SLE).
+    2. Multiply the SLE by the Annualised Rate of Occurrence (ARO) to determine the threat's ALE.
+  Sum all individual threat ALEs to produce the Total Aggregate Risk Exposure.
+pros:
+  - "Provides a holistic view of financial risk across multiple distinct threat vectors rather than relying on a single average."
+cons:
+  - "Requires granular asset valuation to provide meaningful financial outputs."
+variables:
+  - name: "ASSET_VALUE"
+    default: 1000000.0
+    required: true
+    description: "The total valuation of the digital estate being assessed (£)."
+    source: "Internal financial assessment."
+  - name: "RANSOMWARE_EF"
+    default: 0.85
+    required: true
+    description: "The percentage of asset value lost during a successful ransomware or extortionware infection."
+    source: "IBM Cost of a Data Breach 2025"
+  - name: "RANSOMWARE_ARO"
+    default: 0.44
+    required: true
+    description: "The annual probability of a successful ransomware breach."
+    source: "Verizon DBIR 2025"
+  - name: "PHISHING_EF"
+    default: 0.20
+    required: true
+    description: "The percentage of asset value lost resulting from credential harvesting and social engineering."
+    source: "IBM Cost of a Data Breach 2025"
+  - name: "PHISHING_ARO"
+    default: 0.80
+    required: true
+    description: "The annual probability of a successful phishing or social engineering intrusion."
+    source: "Verizon DBIR 2025"
+  - name: "SUPPLY_CHAIN_EF"
+    default: 0.70
+    required: true
+    description: "The percentage of asset value lost due to third-party vendor or software supply chain compromise."
+    source: "IBM Cost of a Data Breach 2025"
+  - name: "SUPPLY_CHAIN_ARO"
+    default: 0.30
+    required: true
+    description: "The annual probability of a successful supply chain breach."
+    source: "Verizon DBIR 2025"
+  - name: "INSIDER_THREAT_EF"
+    default: 0.75
+    required: true
+    description: "The percentage of asset value lost due to malicious internal actors with existing access privileges."
+    source: "IBM Cost of a Data Breach 2025"
+  - name: "INSIDER_THREAT_ARO"
+    default: 0.10
+    required: true
+    description: "The annual probability of a malicious insider threat incident."
+    source: "Vectra AI / DBIR 2025"
+  - name: "VULNERABILITY_EF"
+    default: 0.50
+    required: true
+    description: "The percentage of asset value lost following the exploitation of unpatched software vulnerabilities."
+    source: "IBM Cost of a Data Breach 2025"
+  - name: "VULNERABILITY_ARO"
+    default: 0.20
+    required: true
+    description: "The annual probability of a successful vulnerability exploitation."
+    source: "Verizon DBIR 2025"
+  - name: "MISCONFIGURATION_EF"
+    default: 0.60
+    required: true
+    description: "The percentage of asset value lost due to exposed databases, shadow data, or cloud misconfigurations."
+    source: "IBM Cost of a Data Breach 2025"
+  - name: "MISCONFIGURATION_ARO"
+    default: 0.35
+    required: true
+    description: "The annual probability of a breach stemming from structural misconfigurations."
+    source: "IBM Cost of a Data Breach 2025"
+  - name: "DDOS_EF"
+    default: 0.05
+    required: true
+    description: "The percentage of asset value lost due to operational downtime from volumetric denial of service attacks."
+    source: "Cloudflare Threat Report 2025"
+  - name: "DDOS_ARO"
+    default: 0.90
+    required: true
+    description: "The annual probability of experiencing a disruptive DDoS attack."
+    source: "Cloudflare Threat Report 2025"
+script: |
+  import json
+  
+  asset_val = float(ASSET_VALUE)
+  
+  threats = {
+      "Ransomware": {"ef": float(RANSOMWARE_EF), "aro": float(RANSOMWARE_ARO)},
+      "Phishing": {"ef": float(PHISHING_EF), "aro": float(PHISHING_ARO)},
+      "Supply Chain": {"ef": float(SUPPLY_CHAIN_EF), "aro": float(SUPPLY_CHAIN_ARO)},
+      "Insider Threat": {"ef": float(INSIDER_THREAT_EF), "aro": float(INSIDER_THREAT_ARO)},
+      "Vulnerability": {"ef": float(VULNERABILITY_EF), "aro": float(VULNERABILITY_ARO)},
+      "Misconfiguration": {"ef": float(MISCONFIGURATION_EF), "aro": float(MISCONFIGURATION_ARO)},
+      "DDoS": {"ef": float(DDOS_EF), "aro": float(DDOS_ARO)}
+  }
+
+  total_ale = 0
+  threat_ales = {}
+  
+  for threat, metrics in threats.items():
+      sle = asset_val * metrics["ef"]
+      ale = sle * metrics["aro"]
+      threat_ales[threat] = ale
+      total_ale += ale
+
+  threat_names = list(threat_ales.keys())
+  ale_values = list(threat_ales.values())
+
+  print(f'Total Aggregate Annualised Loss Expectancy: £{round(total_ale, 2)}')
+output_title: "Risk Aggregation Results:"
+output_prefix: ""
+visualisation:
+  type: "bar"
+  x_variable: "threat_names"
+  y_variable: "ale_values"
+  title: "ALE by Threat Vector"
+  x_label: "Threat Vector"
+  y_label: "Annualised Loss Expectancy (£)"
+  height: 20
+  colour: "blue"
+  theme: "clear"
+  grid: true
